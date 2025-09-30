@@ -2,13 +2,14 @@ import cv2
 import argparse
 import numpy as np
 from typing import List
+
+from svg2gcode.__main__ import svg2gcode
 from svgpathtools import Path, Line, CubicBezier, QuadraticBezier, wsvg
 from math import sin, pi
 from functools import lru_cache
-import svg2gcode
-
-
-
+# import svg2gcode.__main__
+import subprocess
+import os
 
 def frange(start, stop, increment=1.0):
     current = start
@@ -115,7 +116,32 @@ for row in range(image.shape[0]):
 wsvg(paths=all_lines, filename=outpath)
 print(f"SVG saved as {outpath}")
 
+# x = subprocess.run(f"svg2gcode \"{outpath}\" \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/Gcode.gc\"", shell=True , capture_output=True )
+# print(x.stdout.decode())
+# print(x.stderr)
 
+
+
+# cfg = {
+#     # "show_image": True,
+#     "pixelsize_default": 0.4,
+#     "imagespeed_default": 800,
+#     "cuttingspeed_default": 0,
+#     "imagepower_default": 0,
+#     "poweroffset_default": 0,
+#     "cuttingpower_default": 0,
+#     "xmaxtravel_default": 290,
+#     "ymaxtravel_default": 210,
+#     "rapidmove_default": 10,
+#     "noise_default": 0,
+#     "overscan_default": 0,
+#     "pass_depth_default": 1,
+#     "passes_default": 1,
+#     "rotate_default": 0,
+#     "colorcoded_default": "",
+#     "constantburn_default": True,
+# }
+# svg2gcode.__main__.svg2gcode(cfg)
 
 
 
