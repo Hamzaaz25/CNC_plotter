@@ -1,13 +1,10 @@
 import cv2
-import argparse
 import numpy as np
 from typing import List
 from svgpathtools import Path, Line, CubicBezier, QuadraticBezier, wsvg
 from math import sin, pi
 from functools import lru_cache
-import svg2gcode
-
-
+import subprocess
 
 
 def frange(start, stop, increment=1.0):
@@ -36,10 +33,10 @@ def get_range_val(start, end, increment, idx):
 
 
 cap = cv2.VideoCapture(0)
-cap.set(3, 640)
-cap.set(4, 480)
+cap.set(3, 590)
+cap.set(4, 840)
 cap.set(10, 100)
-
+# face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 while(True):
     success, img = cap.read()
     img = cv2.flip(img, 1)
@@ -49,14 +46,14 @@ while(True):
         cap.release()
         break
 
-cv2.imwrite("C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/image.png", img)
+cv2.imwrite("C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/image.png",img , [cv2.IMWRITE_PNG_COMPRESSION, 9])
 
 imagepath = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/image.png"
 outpath = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/Processed.svg"
-height =int(160)
+height =int(90)
 pixel_width =int(4)
 resolution = 0.7
-max_amplitude = 2
+max_amplitude = 3
 max_frequency = 3
 
 
@@ -114,8 +111,5 @@ for row in range(image.shape[0]):
 
 wsvg(paths=all_lines, filename=outpath)
 print(f"SVG saved as {outpath}")
-
-
-
-
-
+subprocess.run(f"vpype read {outpath} linemerge linesort gwrite -p step_motor \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc\"")
+print(f"Gcode saved")
