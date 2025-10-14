@@ -1,0 +1,8 @@
+[gwrite.marlin_servo]
+unit = "mm"
+document_start = "G21\nG90\nM03 S180\n"         # Set mm units, absolute mode, pen up initially
+segment_first = "M03 S0\nG1 X{x:.4f} Y{y:.4f} F300\n"   # Pen down, then move to first point
+segment = "G1 X{x:.4f} Y{y:.4f} F300\n"                 # Continue moving with pen down
+line_end = "M03 S180\n"                                 # Pen up after finishing each line
+document_end = "M03 S180\nG0 X0 Y0 F1000\nM84\n"        # Pen up, go home, disable motors
+

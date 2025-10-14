@@ -1,3 +1,5 @@
+import sys
+
 import cv2
 import numpy as np
 from typing import List
@@ -5,6 +7,11 @@ from svgpathtools import Path, Line, CubicBezier, QuadraticBezier, wsvg
 from math import sin, pi
 from functools import lru_cache
 import subprocess
+import requests
+import json
+import vpype as vp
+import time
+import socketio
 
 
 def frange(start, stop, increment=1.0):
@@ -45,7 +52,7 @@ while(True):
     if cv2.waitKey(1) & 0xFF == ord('q'):
         cap.release()
         break
-
+time.sleep(3)
 cv2.imwrite("C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/image.png",img , [cv2.IMWRITE_PNG_COMPRESSION, 9])
 
 imagepath = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/image.png"
@@ -111,5 +118,106 @@ for row in range(image.shape[0]):
 
 wsvg(paths=all_lines, filename=outpath)
 print(f"SVG saved as {outpath}")
-subprocess.run(f"vpype read {outpath} linemerge linesort gwrite -p step_motor \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc\"")
+Svg = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/Processedd.svg"
+subprocess.run(f"vpype --config \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/myconfig.toml\" read {Svg}  scale 0.05mm 0.05mm linemerge linesort gwrite -p marlin_servo \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc\"")
 print(f"Gcode saved")
+
+
+# Gpath = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc"
+# json_path = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.json"
+#
+# commands = []
+#
+# with open(Gpath, "r") as f:
+#     for line in f:
+#         line = line.strip()
+#         if not line or line.startswith(";"):  # skip empty lines and comments
+#             continue
+#         cmd_dict = {}
+#         parts = line.split()
+#         cmd_dict["cmd"] = parts[0]
+#         for p in parts[1:]:
+#             key = ''.join(filter(str.isalpha, p))
+#             value = ''.join(filter(lambda x: x.isdigit() or x == '.' or x=='-', p))
+#             if value:
+#                 cmd_dict[key] = float(value)
+#         commands.append(cmd_dict)
+#
+# with open(json_path, "w") as f:
+#     json.dump(commands, f, indent=4)
+#
+# print("JSON saved at", json_path)
+#
+# subprocess.run(
+#     'for /f "tokens=5" %a in (\'netstat -ano ^| findstr :8000\') do taskkill /PID %a /F >nul 2>&1',
+#     shell=True
+# )
+#
+# server = subprocess.Popen("cncjs --port 8000" , shell=True)
+# time.sleep(2)
+#
+# URL = "http://127.0.0.1:8000/api"
+# token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijk4Y2QzMDVkLTE0MjYtNDI2My04YWIxLWMzNDhjOGZiMTgzZSIsIm5hbWUiOiJhZG1pbiIsImlhdCI6MTc1OTg1OTA5MSwiZXhwIjoxNzYyNDUxMDkxfQ.Y7CUDUj5zFu4F5jGwThl_lUUiD2EuW2uhBo1mfv5Yic"
+# Port = "COM13@115200"
+#
+# time.sleep(5)
+# #
+# sign = requests.post(f"{URL}/signin", json = {"USERNAME" : "admin" , "PASSWORD" : "admin"})
+# print(sign)
+# if sign.ok:
+#   print("Signed")
+#   data = sign.json()
+#   token = data.get("token")
+# header = {
+#       "Authorization": f"Bearer {token}",
+#       "Content-Type": "application/json",
+#   }
+#
+# sio = socketio.Client(logger=True, engineio_logger=True)
+# sio.connect('http://127.0.0.1:8000', headers=header , transports=['websocket', 'polling'],
+#     socketio_path='/socket.io')
+# # sio.emit('open',{'options': {
+# #     "port": "COM13",
+# #     "baudRate": int(115200) ,
+# #     "controllerType": "Grbl"
+# #
+# # }})
+# port, baud_rate = Port.split('@')
+# baud_rate = int(115200)  # Convert to integer
+# @sio.event
+# def connect():
+#     print("✅ Connected")
+#     sio.emit('open', {
+#         'options': {
+#             'path':"COM13",
+#             'baudRate': 115200,
+#             'controller': "Grbl"
+#         }
+#     })
+# # connect()
+# sio.wait()
+
+# connect_data = {"port": "COM13", "baudrate": 115200}
+# connect = requests.post(f"{URL}/connections", json=connect_data, headers=headers)
+# print("Connect:", connect.status_code)
+# if connect.status_code == 404:
+#    sys.exit(0)
+#
+# controllers = requests.get(f"{URL}/controllers", headers=headers)
+# print(controllers.json())
+#
+#
+# response = requests.post(    f"{URL}/v1/controllers/{Port}/command",
+#      json={"cmd": commands},
+#      headers=headers , timeout=10 )
+#
+#
+# # server.terminate()    f"{API_URL}/controllers/{PORT}/command",
+# #     json={"cmd": gcode},
+# #     headers=headers
+# if response.ok:
+#     print("Command sent successfully")
+# else:
+#     print("Error:", response.status_code)
+#
+# server.terminate()
