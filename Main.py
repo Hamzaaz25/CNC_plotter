@@ -1,5 +1,3 @@
-import sys
-
 import cv2
 import numpy as np
 from typing import List
@@ -7,11 +5,9 @@ from svgpathtools import Path, Line, CubicBezier, QuadraticBezier, wsvg
 from math import sin, pi
 from functools import lru_cache
 import subprocess
-import requests
-import json
-import vpype as vp
 import time
-import socketio
+import serial
+from threading import Event
 
 
 def frange(start, stop, increment=1.0):
@@ -53,14 +49,14 @@ while(True):
         cap.release()
         break
 time.sleep(3)
-cv2.imwrite("C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/image.png",img , [cv2.IMWRITE_PNG_COMPRESSION, 9])
+imagepath = "TestingImages/image.png"
+cv2.imwrite(imagepath, img ,[cv2.IMWRITE_PNG_COMPRESSION, 9])
 
-imagepath = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/image.png"
-outpath = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/Processed.svg"
+outpath = "TestingImages/Processed.svg"
 height =int(90)
 pixel_width =int(4)
 resolution = 0.7
-max_amplitude = 3
+max_amplitude = 4
 max_frequency = 3
 
 
@@ -118,106 +114,139 @@ for row in range(image.shape[0]):
 
 wsvg(paths=all_lines, filename=outpath)
 print(f"SVG saved as {outpath}")
-Svg = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/Processedd.svg"
-subprocess.run(f"vpype --config \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/myconfig.toml\" read {Svg}  scale 0.05mm 0.05mm linemerge linesort gwrite -p marlin_servo \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc\"")
+svg = f"C:/Users/pc/PycharmProjects/Cnc_Plotter/{outpath}"
+subprocess.run(f"vpype --config \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/myconfig.toml\" read {svg}  scale 0.3mm 0.3mm linemerge linesort gwrite -p marlin_servo \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc\"")
 print(f"Gcode saved")
 
+time.sleep(10)
+"""
+This is a simple script that attempts to connect to the GRBL controller at 
+> /dev/tty.usbserial-A906L14X
+It then reads the grbl_test.gcode and sends it to the controller
 
-# Gpath = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc"
-# json_path = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.json"
-#
-# commands = []
-#
-# with open(Gpath, "r") as f:
-#     for line in f:
-#         line = line.strip()
-#         if not line or line.startswith(";"):  # skip empty lines and comments
-#             continue
-#         cmd_dict = {}
-#         parts = line.split()
-#         cmd_dict["cmd"] = parts[0]
-#         for p in parts[1:]:
-#             key = ''.join(filter(str.isalpha, p))
-#             value = ''.join(filter(lambda x: x.isdigit() or x == '.' or x=='-', p))
-#             if value:
-#                 cmd_dict[key] = float(value)
-#         commands.append(cmd_dict)
-#
-# with open(json_path, "w") as f:
-#     json.dump(commands, f, indent=4)
-#
-# print("JSON saved at", json_path)
-#
-# subprocess.run(
-#     'for /f "tokens=5" %a in (\'netstat -ano ^| findstr :8000\') do taskkill /PID %a /F >nul 2>&1',
-#     shell=True
-# )
-#
-# server = subprocess.Popen("cncjs --port 8000" , shell=True)
-# time.sleep(2)
-#
-# URL = "http://127.0.0.1:8000/api"
-# token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijk4Y2QzMDVkLTE0MjYtNDI2My04YWIxLWMzNDhjOGZiMTgzZSIsIm5hbWUiOiJhZG1pbiIsImlhdCI6MTc1OTg1OTA5MSwiZXhwIjoxNzYyNDUxMDkxfQ.Y7CUDUj5zFu4F5jGwThl_lUUiD2EuW2uhBo1mfv5Yic"
-# Port = "COM13@115200"
-#
-# time.sleep(5)
-# #
-# sign = requests.post(f"{URL}/signin", json = {"USERNAME" : "admin" , "PASSWORD" : "admin"})
-# print(sign)
-# if sign.ok:
-#   print("Signed")
-#   data = sign.json()
-#   token = data.get("token")
-# header = {
-#       "Authorization": f"Bearer {token}",
-#       "Content-Type": "application/json",
-#   }
-#
-# sio = socketio.Client(logger=True, engineio_logger=True)
-# sio.connect('http://127.0.0.1:8000', headers=header , transports=['websocket', 'polling'],
-#     socketio_path='/socket.io')
-# # sio.emit('open',{'options': {
-# #     "port": "COM13",
-# #     "baudRate": int(115200) ,
-# #     "controllerType": "Grbl"
-# #
-# # }})
-# port, baud_rate = Port.split('@')
-# baud_rate = int(115200)  # Convert to integer
-# @sio.event
-# def connect():
-#     print("✅ Connected")
-#     sio.emit('open', {
-#         'options': {
-#             'path':"COM13",
-#             'baudRate': 115200,
-#             'controller': "Grbl"
-#         }
-#     })
-# # connect()
-# sio.wait()
+The script waits for the completion of the sent line of gcode before moving onto the next line
 
-# connect_data = {"port": "COM13", "baudrate": 115200}
-# connect = requests.post(f"{URL}/connections", json=connect_data, headers=headers)
-# print("Connect:", connect.status_code)
-# if connect.status_code == 404:
-#    sys.exit(0)
-#
-# controllers = requests.get(f"{URL}/controllers", headers=headers)
-# print(controllers.json())
-#
-#
-# response = requests.post(    f"{URL}/v1/controllers/{Port}/command",
-#      json={"cmd": commands},
-#      headers=headers , timeout=10 )
+tested on
+> MacOs Monterey arm64
+> Python 3.9.5 | packaged by conda-forge | (default, Jun 19 2021, 00:24:55) 
+[Clang 11.1.0 ] on darwin
+> Vscode 1.62.3
+> Openbuilds BlackBox GRBL controller
+> GRBL 1.1
+"""
 #
 #
-# # server.terminate()    f"{API_URL}/controllers/{PORT}/command",
-# #     json={"cmd": gcode},
-# #     headers=headers
-# if response.ok:
-#     print("Command sent successfully")
-# else:
-#     print("Error:", response.status_code)
 #
-# server.terminate()
+# BAUD_RATE = 115200
+#
+#
+# def remove_comment(string):
+#     if (string.find(';') == -1):
+#         return string
+#     else:
+#         return string[:string.index(';')]
+#
+#
+# def remove_eol_chars(string):
+#     # removed \n or trailing spaces
+#     return string.strip()
+#
+#
+# def send_wake_up(ser):
+#     # Wake up
+#     # Hit enter a few times to wake the Printrbot
+#     ser.write(str.encode("\r\n\r\n"))
+#     time.sleep(2)   # Wait for Printrbot to initialize
+#     ser.flushInput()  # Flush startup text in serial input
+#
+#
+# def wait_for_movement_completion(ser, cleaned_line):
+#     Event().wait(1)
+#
+#     if cleaned_line != '$X' or '$$':
+#         idle_counter = 0
+#
+#         while True:
+#             # Event().wait(0.01)
+#             ser.reset_input_buffer()
+#             command = str.encode('?' + '\n')
+#             ser.write(command)
+#             grbl_out = ser.readline()
+#             grbl_response = grbl_out.strip().decode('utf-8')
+#
+#             if grbl_response != 'ok':
+#                 if grbl_response.find('Idle') > 0:
+#                     idle_counter += 1
+#
+#             if idle_counter > 10:
+#                 break
+#     return
+#
+#
+# def stream_gcode(GRBL_port_path, gcode_path):
+#     # with context opens file/connection and closes it if function(with) scope is left
+#     with open(gcode_path, "r") as file, serial.Serial(GRBL_port_path, BAUD_RATE) as ser:
+#         send_wake_up(ser)
+#         for line in file:
+#             # cleaning up gcode from file
+#             cleaned_line = remove_eol_chars(remove_comment(line))
+#             if cleaned_line:  # checks if string is empty
+#                 print("Sending gcode: " + str(cleaned_line))
+#                 # converts string to byte encoded string and append newline
+#                 command = str.encode(line + '\n')
+#                 ser.write(command)  # Send g-code
+#
+#                 wait_for_movement_completion(ser, cleaned_line)
+#
+#                 grbl_out = ser.readline()  # Wait for response with carriage return
+#                 print(" : ", grbl_out.strip().decode('utf-8'))
+#
+#         print('End of gcode')
+#
+#
+# if __name__ == "__main__":
+#     # GRBL_port_path = '/dev/tty.usbserial-A906L14X'
+#     GRBL_port_path = 'COM13'
+#     gcode_path = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc"
+#
+#     print("USB Port: ", GRBL_port_path)
+#     print("Gcode file: ", gcode_path)
+#     stream_gcode(GRBL_port_path, gcode_path)
+#     print('EOF')
+#
+#
+#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,8 +1,49 @@
 [gwrite.marlin_servo]
 unit = "mm"
-document_start = "G21\nG90\nM03 S180\n"         # Set mm units, absolute mode, pen up initially
-segment_first = "M03 S0\nG1 X{x:.4f} Y{y:.4f} F300\n"   # Pen down, then move to first point
-segment = "G1 X{x:.4f} Y{y:.4f} F300\n"                 # Continue moving with pen down
-line_end = "M03 S180\n"                                 # Pen up after finishing each line
-document_end = "M03 S180\nG0 X0 Y0 F1000\nM84\n"        # Pen up, go home, disable motors
 
+# Initialize: set millimeters, absolute mode, and pen up
+document_start = "G21\nG90\nM03 S180\n"
+
+# For each new path:
+# 1. Pen up
+# 2. Travel fast (G0, F700)
+# 3. Pen down
+# 4. Start drawing (G1, F300)
+segment_first = "M03 S180\nG0 X{x:.4f} Y{y:.4f} F700\nM03 S0\nG1 X{x:.4f} Y{y:.4f} F300\n"
+
+# Continue drawing with pen down
+segment = "G1 X{x:.4f} Y{y:.4f} F300\n"
+
+# After finishing each polyline, pen up
+line_end = "M03 S180\n"
+
+# Wrap up: pen up, go home, disable motors
+document_end = "M03 S180\nG0 X0 Y0 F700\nM84\n"
+invert_y = true
+
+
+
+
+
+
+
+#unit = "mm"
+#document_start = """G21
+#G54
+#G21
+#G90
+#M03 S180
+#"""
+#layer_start = "(Start Layer)\n"
+#line_start = "(Start Block)\n"
+#segment_first = """G0 Z0
+#G0 X{x:.4f} Y{y:.4f}
+#M03 S0
+#G4 P0.5; Tool On\n"""
+#segment = "G1 F700 X{x:.4f} Y{y:.4f} Z-0.1000\n"
+#line_end = """M30 S180
+#G4 P0.5\n"""
+#document_end = """M5
+#G00 X0.0000 Y0.0000
+#M2"""
+#invert_y = true
