@@ -10,6 +10,7 @@ import serial
 from threading import Event
 
 
+
 def frange(start, stop, increment=1.0):
     current = start
     while current < stop:
@@ -33,13 +34,59 @@ def resize_image(image: np.ndarray, height: int):
 def get_range_val(start, end, increment, idx):
     return list(frange(start, end, increment))[::-1][idx]
 
+def center_gcode(lines, bed_width, bed_height):
+    x_vals, y_vals = [], []
+
+    # المرحلة 1: جمع الإحداثيات X و Y من أسطر الحركة فقط
+    for line in lines:
+        if line.startswith(('G1', 'G0')):
+            parts = line.split()
+            for p in parts:
+                if p.startswith('X'):
+                    x_vals.append(float(p[1:]))
+                elif p.startswith('Y'):
+                    y_vals.append(float(p[1:]))
+
+    if not x_vals or not y_vals:
+        return lines
+
+    # حساب الأبعاد الحالية والرسم داخل مساحة الورقة
+    min_x, max_x = min(x_vals), max(x_vals)
+    min_y, max_y = min(y_vals), max(y_vals)
+
+    draw_width = max_x - min_x
+    draw_height = max_y - min_y
+
+    offset_x = (bed_width - draw_width) / 2 - min_x
+    offset_y = (bed_height - draw_height) / 2 - min_y
+
+    new_lines = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith(('G1', 'G0')):
+            parts = []
+            for p in stripped.split():
+                if p.startswith('X'):
+                    parts.append(f"X{float(p[1:]) + offset_x:.3f}")
+                elif p.startswith('Y'):
+                    parts.append(f"Y{float(p[1:]) + offset_y:.3f}")
+                else:
+                    parts.append(p)
+            new_line = ' '.join(parts)
+        else:
+            new_line = stripped
+        # ✳️ تأكد من وجود newline بعد كل سطر
+        new_lines.append(new_line + '\n')
+
+    return new_lines
 
 
+# Take a picture
 cap = cv2.VideoCapture(0)
 cap.set(3, 590)
 cap.set(4, 840)
 cap.set(10, 100)
-# face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+
 while(True):
     success, img = cap.read()
     img = cv2.flip(img, 1)
@@ -48,19 +95,20 @@ while(True):
     if cv2.waitKey(1) & 0xFF == ord('q'):
         cap.release()
         break
-time.sleep(3)
-imagepath = "TestingImages/image.png"
-cv2.imwrite(imagepath, img ,[cv2.IMWRITE_PNG_COMPRESSION, 9])
 
+imgg = cv2.imread("C:/Users/pc/Desktop/CNC_plotter_photo/Penguin.jpg")
+imagepath = "C:/Users/pc/Desktop/CNC_plotter_photo/Penguin.jpg"
+cv2.imwrite(imagepath, imgg)
 outpath = "TestingImages/Processed.svg"
-height =int(90)
+
+# Svg Sin Photo Parameters
+height =int(100)
 pixel_width =int(4)
 resolution = 0.7
-max_amplitude = 4
+max_amplitude = 3
 max_frequency = 3
 
-
-
+#Adjust the image params
 image = cv2.imread(imagepath)
 image = resize_image(image, height)  # adjust height
 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # make it grayscale
@@ -115,107 +163,44 @@ for row in range(image.shape[0]):
 wsvg(paths=all_lines, filename=outpath)
 print(f"SVG saved as {outpath}")
 svg = f"C:/Users/pc/PycharmProjects/Cnc_Plotter/{outpath}"
-subprocess.run(f"vpype --config \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/myconfig.toml\" read {svg}  scale 0.3mm 0.3mm linemerge linesort gwrite -p marlin_servo \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc\"")
+# Convert to gcode line
+subprocess.run(f"vpype --config \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/myconfig.toml\" read {svg} translate 10mm 10mm scale 0.3mm 0.3mm linemerge linesort gwrite -p marlin_servo \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc\"")
 print(f"Gcode saved")
+with open("C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc") as f:
+    lines = f.readlines()
 
+centered = center_gcode(lines, bed_width=297, bed_height=210)
+
+with open("TestingImages/Centered.gc", "w") as f:
+    f.writelines(centered)
 time.sleep(10)
 """
-This is a simple script that attempts to connect to the GRBL controller at 
+This is the gcode sender
+
+This is a simple script that attempts to connect to the GRBL controller at
 > /dev/tty.usbserial-A906L14X
 It then reads the grbl_test.gcode and sends it to the controller
 
 The script waits for the completion of the sent line of gcode before moving onto the next line
 
-tested on
+tested on   
 > MacOs Monterey arm64
-> Python 3.9.5 | packaged by conda-forge | (default, Jun 19 2021, 00:24:55) 
+> Python 3.9.5 | packaged by conda-forge | (default, Jun 19 2021, 00:24:55)
 [Clang 11.1.0 ] on darwin
 > Vscode 1.62.3
 > Openbuilds BlackBox GRBL controller
 > GRBL 1.1
 """
-#
-#
-#
-# BAUD_RATE = 115200
-#
-#
-# def remove_comment(string):
-#     if (string.find(';') == -1):
-#         return string
-#     else:
-#         return string[:string.index(';')]
-#
-#
-# def remove_eol_chars(string):
-#     # removed \n or trailing spaces
-#     return string.strip()
-#
-#
-# def send_wake_up(ser):
-#     # Wake up
-#     # Hit enter a few times to wake the Printrbot
-#     ser.write(str.encode("\r\n\r\n"))
-#     time.sleep(2)   # Wait for Printrbot to initialize
-#     ser.flushInput()  # Flush startup text in serial input
-#
-#
-# def wait_for_movement_completion(ser, cleaned_line):
-#     Event().wait(1)
-#
-#     if cleaned_line != '$X' or '$$':
-#         idle_counter = 0
-#
-#         while True:
-#             # Event().wait(0.01)
-#             ser.reset_input_buffer()
-#             command = str.encode('?' + '\n')
-#             ser.write(command)
-#             grbl_out = ser.readline()
-#             grbl_response = grbl_out.strip().decode('utf-8')
-#
-#             if grbl_response != 'ok':
-#                 if grbl_response.find('Idle') > 0:
-#                     idle_counter += 1
-#
-#             if idle_counter > 10:
-#                 break
-#     return
-#
-#
-# def stream_gcode(GRBL_port_path, gcode_path):
-#     # with context opens file/connection and closes it if function(with) scope is left
-#     with open(gcode_path, "r") as file, serial.Serial(GRBL_port_path, BAUD_RATE) as ser:
-#         send_wake_up(ser)
-#         for line in file:
-#             # cleaning up gcode from file
-#             cleaned_line = remove_eol_chars(remove_comment(line))
-#             if cleaned_line:  # checks if string is empty
-#                 print("Sending gcode: " + str(cleaned_line))
-#                 # converts string to byte encoded string and append newline
-#                 command = str.encode(line + '\n')
-#                 ser.write(command)  # Send g-code
-#
-#                 wait_for_movement_completion(ser, cleaned_line)
-#
-#                 grbl_out = ser.readline()  # Wait for response with carriage return
-#                 print(" : ", grbl_out.strip().decode('utf-8'))
-#
-#         print('End of gcode')
-#
-#
-# if __name__ == "__main__":
-#     # GRBL_port_path = '/dev/tty.usbserial-A906L14X'
-#     GRBL_port_path = 'COM13'
-#     gcode_path = "C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc"
-#
-#     print("USB Port: ", GRBL_port_path)
-#     print("Gcode file: ", gcode_path)
-#     stream_gcode(GRBL_port_path, gcode_path)
-#     print('EOF')
-#
-#
-#
+
+# main.py
+from grbl_uploader import GRBLUploader
+
+if __name__ == "__main__":
+    uploader = GRBLUploader(port="COM17", baudrate=115200)
+    uploader.connect()
+    uploader.stream_file("TestingImages/Centered.gc")
+    uploader.disconnect()
+
 
 
 
