@@ -6,8 +6,7 @@ from math import sin, pi
 from functools import lru_cache
 import subprocess
 import time
-import serial
-from threading import Event
+
 
 
 
@@ -96,13 +95,13 @@ while(True):
         cap.release()
         break
 
-imgg = cv2.imread("C:/Users/pc/Desktop/CNC_plotter_photo/Penguin.jpg")
-imagepath = "C:/Users/pc/Desktop/CNC_plotter_photo/Penguin.jpg"
+imgg = cv2.imread("C:/Users/pc/Desktop/CNC_plotter_photo/Docc.jpg")
+imagepath = "C:/Users/pc/Desktop/CNC_plotter_photo/Docc.jpg"
 cv2.imwrite(imagepath, imgg)
 outpath = "TestingImages/Processed.svg"
 
 # Svg Sin Photo Parameters
-height =int(100)
+height =int(120)
 pixel_width =int(4)
 resolution = 0.7
 max_amplitude = 3
@@ -126,6 +125,16 @@ for row in range(image.shape[0]):
 
     for col in range(image.shape[1]):
         pixel = image[row, col]
+        # WHITE_THRESHOLD = 230
+        # if pixel >= WHITE_THRESHOLD:
+        #     # end the current line path
+        #     if len(sin_line) > 0:
+        #         all_lines.append(sin_line)
+        #         sin_line = Path()
+        #     current_x += pixel_width
+        #     start_point = complex(current_x, line_start_height)
+        #     continue
+
 
         # 255 is max value of grayscale pixel
         target_sin_amplitude = get_range_val(0, max_amplitude,
@@ -159,7 +168,7 @@ for row in range(image.shape[0]):
 
     all_lines.append(sin_line)
 
-
+all_lines = [p for p in all_lines if len(p) > 0]
 wsvg(paths=all_lines, filename=outpath)
 print(f"SVG saved as {outpath}")
 svg = f"C:/Users/pc/PycharmProjects/Cnc_Plotter/{outpath}"
@@ -173,65 +182,22 @@ centered = center_gcode(lines, bed_width=297, bed_height=210)
 
 with open("TestingImages/Centered.gc", "w") as f:
     f.writelines(centered)
-time.sleep(10)
-"""
-This is the gcode sender
+time.sleep(5)
 
-This is a simple script that attempts to connect to the GRBL controller at
-> /dev/tty.usbserial-A906L14X
-It then reads the grbl_test.gcode and sends it to the controller
-
-The script waits for the completion of the sent line of gcode before moving onto the next line
-
-tested on   
-> MacOs Monterey arm64
-> Python 3.9.5 | packaged by conda-forge | (default, Jun 19 2021, 00:24:55)
-[Clang 11.1.0 ] on darwin
-> Vscode 1.62.3
-> Openbuilds BlackBox GRBL controller
-> GRBL 1.1
-"""
-
-# main.py
 from grbl_uploader import GRBLUploader
 
 if __name__ == "__main__":
-    uploader = GRBLUploader(port="COM17", baudrate=115200)
+    uploader = GRBLUploader(port="COM17")
     uploader.connect()
-    uploader.stream_file("TestingImages/Centered.gc")
-    uploader.disconnect()
+    uploader.start_stream("TestingImages/Centered.gc")
 
+    # time.sleep(5)
+    # uploader.Pause()
+    # print("Paused...")
+    # time.sleep(3)
+    # uploader.resume()
+    # print("Resumed...")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    # uploader.stop()  # Optional emergency stop
+    uploader.thread.join()  # Wait until upload finishes
 

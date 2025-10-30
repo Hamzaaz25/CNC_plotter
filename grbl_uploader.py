@@ -13,11 +13,12 @@ License: MIT
 import serial
 import time
 from threading import Event
+import threading
 
 class GRBLUploader:
     """A simple wrapper for streaming G-code to a GRBL controller."""
 
-    def __init__(self, port: str, baudrate: int = 115200, timeout: float = 1.0):
+    def __init__(self, port: str, baudrate: int = 115200, timeout: float = 1.0 , paused: bool = False):
         """
         Initialize GRBLUploader with serial port configuration.
 
@@ -29,6 +30,7 @@ class GRBLUploader:
         self.baudrate = baudrate
         self.timeout = timeout
         self.ser = None
+        self.paused = paused
 
     # ------------------------------------------------------------------------
 
@@ -100,6 +102,15 @@ class GRBLUploader:
         return response
 
     # ------------------------------------------------------------------------
+    def start_stream(self ,filepath :str):
+        self.paused = False
+
+        self.thread = threading.Thread(
+            target=self.stream_file,
+            args=(filepath,),
+            daemon=True)
+        self.thread.start()
+        print("[STARTED]")
 
     def stream_file(self, filepath: str):
         """Stream G-code file to GRBL using buffer-aware streaming (much faster)."""
@@ -114,6 +125,9 @@ class GRBLUploader:
         i = 0
         responses = []
         while i < len(lines):
+            if self.paused :
+                time.sleep(0.1)
+                continue
             line = lines[i]
             if not line:
                 i += 1
@@ -145,6 +159,42 @@ class GRBLUploader:
 
         print("[UPLOAD COMPLETE]")
         return responses
+
+    def Pause(self):
+        """Pause G-code streaming safely."""
+        if not self.paused:
+            try:
+                self.ser.write(b'!\n')  # GRBL feed hold
+                self.ser.flush()
+                self.paused = True
+                print("[PAUSED] Feed hold activated. Waiting for GRBL to stop...")
+
+                # Optional: Wait until GRBL confirms it's actually paused
+                start = time.time()
+                while True:
+                    self.ser.reset_input_buffer()
+                    self.ser.write(b"?\n")  # Request status
+                    response = self.ser.readline().decode("utf-8", errors="ignore").strip()
+                    if "Hold" in response or "Idle" in response:
+                        break
+                    if time.time() - start > 2:  # Timeout just in case
+                        break
+                    time.sleep(0.1)
+
+                print("[GRBL HOLD CONFIRMED]")
+            except Exception as e:
+                print(f"[PAUSE ERROR] {e}")
+
+    def resume(self):
+        """Resume G-code streaming."""
+        if self.paused:
+            try:
+                self.ser.write(b'~\n')  # GRBL cycle start
+                self.ser.flush()
+                self.paused = False
+                print("[RESUMED] GRBL cycle start sent.")
+            except Exception as e:
+                print(f"[RESUME ERROR] {e}")
 
 
 # ------------------------------------------------------------------------
