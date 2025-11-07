@@ -1,3 +1,5 @@
+
+# Initialize: set millimeters, absolute mode, and pen up
 [gwrite.marlin_servo]
 unit = "mm"
 
@@ -20,7 +22,6 @@ line_end = "M03 S180\n"
 # Wrap up: pen up, go home, disable motors
 document_end = "M03 S180\nG0 X0 Y0 F8000\nM84\n"
 invert_y = true
-
 
 
 

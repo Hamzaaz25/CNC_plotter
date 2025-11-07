@@ -172,7 +172,7 @@ def options():
 
         SCREEN.fill("white")
 
-        OPTIONS_TEXT = get_font(45).render("This is the OPTIONS screen.", True, "Black")
+        OPTIONS_TEXT = get_font(45).render("Thank You for visiting OPTIONS screen.", True, "Black")
         OPTIONS_RECT = OPTIONS_TEXT.get_rect(center=(640, 260))
         SCREEN.blit(OPTIONS_TEXT, OPTIONS_RECT)
 
@@ -304,7 +304,7 @@ def SquiggleA4():
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if first_Button.checkForInput(Squiggle_Mos_Pos):
-                    Svg80 = Svg_Converter.SvgConverter(80, 4, White_Removal=False)
+                    Svg80 = Svg_Converter.SvgConverter(25, 4, White_Removal=True)
 
                     Svg80.SvgToSin(imagePath, outPath)
                     time.sleep(0.5)
@@ -346,6 +346,8 @@ def SquiggleA4():
 
 
 def Run():
+    Started = False
+    Paused = False
     uploader = GRBLUploader(port="COM17")
     uploader.connect()
     while True:
@@ -371,17 +373,28 @@ def Run():
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Pause_Button.checkForInput(Gcode_Mouse_Pos):
-                    print("Paused")
-                    uploader.Pause()
+                    if not Paused:
+                      Paused = True
+                      uploader.Pause()
+                      print("Paused")
+                      time.sleep(1)
+
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Resume_Button.checkForInput(Gcode_Mouse_Pos):
-                    uploader.resume()
-                    print("Resumed")
+                    if Paused:
+                        Paused = False
+                        uploader.resume()
+                        print("Resumed")
+                        time.sleep(1)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Start_Button.checkForInput(Gcode_Mouse_Pos):
-                    uploader.start_stream("TestingImages/Centered.gc")
-                    print("Started")
+
+                    if not Started:
+                        print("Started")
+                        Started = True
+                        uploader.start_stream("TestingImages/Centered.gc")
+
         pygame.display.update()
 
 
