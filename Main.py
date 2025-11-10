@@ -1,10 +1,9 @@
 import cv2
-import numpy as np
-from typing import List
 import subprocess
-import Svg_Converter
 import time
 import pygame, sys
+
+import Gcode_Converter
 from Button import Button
 from pygame import event
 from tkinter import Tk, filedialog
@@ -12,66 +11,66 @@ import Svg_Converter
 import threading
 from grbl_uploader import GRBLUploader
 
-def center_gcode(lines, bed_width, bed_height):
-    x_vals, y_vals = [], []
+# def center_gcode(lines, bed_width, bed_height):
+#     x_vals, y_vals = [], []
+#
+#     # المرحلة 1: جمع الإحداثيات X و Y من أسطر الحركة فقط
+#     for line in lines:
+#         if line.startswith(('G1', 'G0')):
+#             parts = line.split()
+#             for p in parts:
+#                 if p.startswith('X'):
+#                     x_vals.append(float(p[1:]))
+#                 elif p.startswith('Y'):
+#                     y_vals.append(float(p[1:]))
+#
+#     if not x_vals or not y_vals:
+#         return lines
+#
+#     # حساب الأبعاد الحالية والرسم داخل مساحة الورقة
+#     min_x, max_x = min(x_vals), max(x_vals)
+#     min_y, max_y = min(y_vals), max(y_vals)
+#
+#     draw_width = max_x - min_x
+#     draw_height = max_y - min_y
+#
+#     offset_x = (bed_width - draw_width) / 2 - min_x
+#     offset_y = (bed_height - draw_height) / 2 - min_y
+#
+#     new_lines = []
+#     for line in lines:
+#         stripped = line.strip()
+#         if stripped.startswith(('G1', 'G0')):
+#             parts = []
+#             for p in stripped.split():
+#                 if p.startswith('X'):
+#                     parts.append(f"X{float(p[1:]) + offset_x:.3f}")
+#                 elif p.startswith('Y'):
+#                     parts.append(f"Y{float(p[1:]) + offset_y:.3f}")
+#                 else:
+#                     parts.append(p)
+#             new_line = ' '.join(parts)
+#         else:
+#             new_line = stripped
+#         # ✳️ تأكد من وجود newline بعد كل سطر
+#         new_lines.append(new_line + '\n')
+#
+#     return new_lines
 
-    # المرحلة 1: جمع الإحداثيات X و Y من أسطر الحركة فقط
-    for line in lines:
-        if line.startswith(('G1', 'G0')):
-            parts = line.split()
-            for p in parts:
-                if p.startswith('X'):
-                    x_vals.append(float(p[1:]))
-                elif p.startswith('Y'):
-                    y_vals.append(float(p[1:]))
+# imagepath -> svg , svgwhite -> Gpath , Gwhite
 
-    if not x_vals or not y_vals:
-        return lines
-
-    # حساب الأبعاد الحالية والرسم داخل مساحة الورقة
-    min_x, max_x = min(x_vals), max(x_vals)
-    min_y, max_y = min(y_vals), max(y_vals)
-
-    draw_width = max_x - min_x
-    draw_height = max_y - min_y
-
-    offset_x = (bed_width - draw_width) / 2 - min_x
-    offset_y = (bed_height - draw_height) / 2 - min_y
-
-    new_lines = []
-    for line in lines:
-        stripped = line.strip()
-        if stripped.startswith(('G1', 'G0')):
-            parts = []
-            for p in stripped.split():
-                if p.startswith('X'):
-                    parts.append(f"X{float(p[1:]) + offset_x:.3f}")
-                elif p.startswith('Y'):
-                    parts.append(f"Y{float(p[1:]) + offset_y:.3f}")
-                else:
-                    parts.append(p)
-            new_line = ' '.join(parts)
-        else:
-            new_line = stripped
-        # ✳️ تأكد من وجود newline بعد كل سطر
-        new_lines.append(new_line + '\n')
-
-    return new_lines
-
-
-
-def GcodeConvert(outPath : str) :
-    subprocess.run(
-        f"vpype --config \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/myconfig.toml\" read {outPath} translate 10mm 10mm scale 0.3mm 0.3mm linemerge linesort gwrite -p marlin_servo \"C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc\"")
-    print(f"Gcode saved")
-
-    with open("C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc") as f:
-        lines = f.readlines()
-
-    centered = center_gcode(lines, bed_width=297, bed_height=210)
-
-    with open("TestingImages/Centered.gc", "w") as f:
-        f.writelines(centered)
+# def GcodeConvert(svgPath : str ) :
+#     subprocess.run(
+#         f"vpype --config \"./TestingImages/myconfig.toml\" read {svgPath} translate 10mm 10mm scale 0.3mm 0.3mm linemerge linesort gwrite -p marlin_servo \"./TestingImages/meow.gc\"")
+#     print(f"Gcode saved")
+#
+#     with open("C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc") as f:
+#         lines = f.readlines()
+#
+#     centered = center_gcode(lines, bed_width=297, bed_height=210)
+#
+#     with open("TestingImages/Centered.gc", "w") as f:
+#         f.writelines(centered)
 
 
 
@@ -128,6 +127,7 @@ def draw():
         PLAY_TEXT = get_font(80).render("Choose Your Way ", True, "#900000")
         PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 100))
         SCREEN.blit(PLAY_TEXT, PLAY_RECT)
+
         Draw_Capture = Button(image=pygame.image.load("assets/Camera.png"), pos=(640, 300), text_input="CAPTURE  ",
                               font=get_font(55), base_color="White", hovering_color="Red")
         Draw_UPLOAD = Button(image=pygame.image.load("assets/Upload.png"), pos=(640, 460),
@@ -270,6 +270,7 @@ def style():
 
 
 def SquiggleA4():
+
     while True:
         Squiggle_Mos_Pos = pygame.mouse.get_pos()
         SCREEN.blit(BG, (0, 0))
@@ -301,41 +302,62 @@ def SquiggleA4():
         Fourth_Button.update(SCREEN)
         imagePath = "TestingImages/image.png"
         outPath = "./TestingImages/Processed.svg"
+        GcodePath = "./TestingImages/Gcode.gc"
+        GcodePathWhite = "./TestingImages/White.gc"
+
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if first_Button.checkForInput(Squiggle_Mos_Pos):
-                    Svg80 = Svg_Converter.SvgConverter(25, 4, White_Removal=True)
-
-                    Svg80.SvgToSin(imagePath, outPath)
+                    Svg80 = Svg_Converter.SvgConverter(80, 4, White_Removal=False)
+                    svg , svgwhite = Svg80.SvgToSin(imagePath, outPath , 230)
                     time.sleep(0.5)
-                    GcodeConvert(outPath)
-                    time.sleep(0.5)
+                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg ,SvgWhite= svgwhite , GPath =GcodePath , GpathWhite=GcodePathWhite , scale=0.3 , bed_width=297 , bed_height=297)
+                    Gcon.firstConvert()
+                    time.sleep(1.5)
+                    Gcon.secondConvert()
                     Run()
                     print("First Button")
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Second_Button.checkForInput(Squiggle_Mos_Pos):
                     Svg100 = Svg_Converter.SvgConverter(100, 4, White_Removal=False)
-                    Svg100.SvgToSin(imagePath, outPath)
+                    svg , svgwhite =Svg100.SvgToSin(imagePath, outPath)
                     time.sleep(0.5)
-                    GcodeConvert(outPath)
+                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg, SvgWhite=svgwhite, GPath=GcodePath,
+                                                          GpathWhite=GcodePathWhite, scale=0.3, bed_width=297,
+                                                          bed_height=297)
+                    Gcon.firstConvert()
+                    time.sleep(1.5)
+                    Gcon.secondConvert()
+
                     time.sleep(0.5)
                     Run()
                     print("Second Button")
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Third_Button.checkForInput(Squiggle_Mos_Pos):
                     Svg120 = Svg_Converter.SvgConverter(120, 4, White_Removal=False)
-                    Svg120.SvgToSin(imagePath, outPath)
+                    svg , svgwhite = Svg120.SvgToSin(imagePath, outPath)
                     time.sleep(0.5)
-                    GcodeConvert(outPath)
+                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg, SvgWhite=svgwhite, GPath=GcodePath,
+                                                          GpathWhite=GcodePathWhite, scale=0.3, bed_width=297,
+                                                          bed_height=297)
+                    Gcon.firstConvert()
+                    time.sleep(1.5)
+                    Gcon.secondConvert()
                     time.sleep(0.5)
                     Run()
                     print("Third Button")
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Fourth_Button.checkForInput(Squiggle_Mos_Pos):
                     Svg140 = Svg_Converter.SvgConverter(140, 4, White_Removal=False)
-                    Svg140.SvgToSin(imagePath, outPath)
+                    svg , svgwhite = Svg140.SvgToSin(imagePath, outPath)
                     time.sleep(0.5)
-                    GcodeConvert(outPath)
+                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg, SvgWhite=svgwhite, GPath=GcodePath,
+                                                          GpathWhite=GcodePathWhite, scale=0.3, bed_width=297,
+                                                          bed_height=297)
+                    Gcon.firstConvert()
+                    time.sleep(1.5)
+                    Gcon.secondConvert()
+
                     time.sleep(0.5)
                     Run()
                     print("Fourth Button")
