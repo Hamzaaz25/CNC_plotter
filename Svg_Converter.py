@@ -6,13 +6,13 @@ from math import sin, pi
 from typing import List
 
 class SvgConverter:
-    def __init__(self , height : int, pixel_width : int ,resolution = 0.7  , max_amplitude=2 , max_frequency=3 , White_Removal : bool = False):
-        self.height = height
-        self.pixel_width = pixel_width
-        self.resolution = resolution
-        self.max_amplitude = max_amplitude
-        self.max_frequency = max_frequency
-        self.White_Removal = White_Removal
+
+    def __init__(self ,imagePath : str , outPath :str ):
+        self.imagePath = imagePath
+        self.outPath = outPath
+        self.image = cv2.imread(self.imagePath)
+
+
 
     def frange(self,start, stop, increment=1.0):
         current = start
@@ -29,10 +29,10 @@ class SvgConverter:
             left=border_size,
             right=border_size,
             borderType=cv2.BORDER_CONSTANT,
-            value=[255, 255, 255]  # أبيض
+            value=[255, 255, 255]
         )
-
-    def resize_image(self,image: np.ndarray, height: int):
+    @classmethod
+    def resize_image(self, image : np.ndarray, height: int):
         # Compute the aspect ratio
         aspect_ratio = float(image.shape[1]) / float(image.shape[0])
 
@@ -47,20 +47,20 @@ class SvgConverter:
     def get_range_val(self,start, end, increment, idx):
         return list(self.frange(start, end, increment))[::-1][idx]
 
-    def SvgToSin(self, imagepath: str, outpath: str, white: int = 230 ):
+    def SvgToSin(self, height : int, pixel_width : float ,resolution = 0.7  , max_amplitude : float =2.0 , max_frequency=3  , white :int = 230, White_Removal : bool = False):
 
-        image = cv2.imread(imagepath)
-        if self.White_Removal:
-            image = self.addWhiteBorders(image , 15)
+        image = cv2.imread(self.imagePath)
+        if White_Removal:
+            self.image = self.addWhiteBorders(image , 15)
         outpath_white = "TestingImages/ProcessedWhite.svg"
-        image = self.resize_image(image,self.height)  # adjust height
+        image = self.resize_image(image , height)  # adjust height
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         WHITE_THRESHOLD = white
         all_lines = []
         white_paths = []
 
         for row in range(image.shape[0]):
-            line_start_height = (row * self.pixel_width) + (self.pixel_width / 2)
+            line_start_height = (row * pixel_width) + (pixel_width / 2)
             current_x = 0
             current_sin_amplitude = 0
             current_sin_frequency = 20
@@ -75,14 +75,14 @@ class SvgConverter:
             for col in range(image.shape[1]):
                 pixel = image[row, col]
 
-                target_amp = self.get_range_val(0, self.max_amplitude, self.max_amplitude / 255, pixel)
-                target_freq = self.get_range_val(0, self.max_frequency, self.max_frequency / 255, pixel)
+                target_amp = self.get_range_val(0, max_amplitude, max_amplitude / 255, pixel)
+                target_freq = self.get_range_val(0, max_frequency, max_frequency / 255, pixel)
 
-                for _ in self.frange(0, self.pixel_width, self.resolution):
+                for _ in self.frange(0, pixel_width, resolution):
 
-                    current_sin_amplitude += (target_amp - current_sin_amplitude) * self.resolution
-                    current_sin_frequency += (target_freq - current_sin_frequency) * self.resolution
-                    current_sin_phase += current_sin_frequency * self.resolution
+                    current_sin_amplitude += (target_amp - current_sin_amplitude) * resolution
+                    current_sin_frequency += (target_freq - current_sin_frequency) * resolution
+                    current_sin_phase += current_sin_frequency * resolution
 
                     current_y = (current_sin_amplitude * sin(current_sin_phase)) + line_start_height
                     end_point = complex(current_x, current_y)
@@ -108,7 +108,7 @@ class SvgConverter:
                             in_white = False
                         sin_line.append(line)
 
-                    current_x += self.resolution
+                    current_x += resolution
                     start_point = end_point
 
             if len(sin_line) > 0:
@@ -116,9 +116,9 @@ class SvgConverter:
             if len(white_line) > 0:
                 white_paths.append(white_line)
 
-        wsvg(paths=all_lines, filename=outpath)
+        wsvg(paths=all_lines, filename=self.outPath)
         wsvg(paths=white_paths, filename=outpath_white)
         svg_white = f"{outpath_white}"
-        svg = f"{outpath}"
+        svg = f"{self.outPath}"
 
         return svg, svg_white

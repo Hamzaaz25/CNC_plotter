@@ -3,11 +3,9 @@ import os
 import time
 
 class GcodeConverter :
-    def __init__(self , SvgPath :str , SvgWhite :str , GPath :str , GpathWhite :str  , scale :float = 0.3 , bed_width :int =297 , bed_height :int =210 ):
+    def __init__(self , SvgPath :str  , GPath :str , scale :float = 0.3 , bed_width :int =297 , bed_height :int =210 ):
         self.SvgPath = SvgPath
-        self.SvgWhite = SvgWhite
         self.GPath = GPath
-        self.GpathWhite = GpathWhite
         self.scale = scale
         self.bed_width = bed_width
         self.bed_height = bed_height
@@ -104,8 +102,8 @@ class GcodeConverter :
 
         return cleaned
 
-    def merge(self):
-        with open(self.GPath , "r") as f1, open(self.GpathWhite, "r") as f2:
+    def merge(self , GpathWhite: str):
+        with open(self.GPath , "r") as f1, open(GpathWhite, "r") as f2:
             full_lines = [l.strip() for l in f1.readlines()]
             white_lines = set(l.strip() for l in f2.readlines())
 
@@ -134,13 +132,13 @@ class GcodeConverter :
         subprocess.run(
             f"vpype --config \"TestingImages/myconfig.toml\" read {svg}  scale {self.scale}mm {self.scale}mm linemerge linesort gwrite -p marlin_servo \"{gcode}\"" ,shell=True)
 
-    def firstConvert(self   ):
+    def firstConvert(self , SvgWhite , GpathWhite   ):
         self.gcodeConvert(self.SvgPath,self.GPath)
-        self.gcodeConvert(self.SvgWhite , self.GpathWhite)
+        self.gcodeConvert(SvgWhite , GpathWhite)
 
 
-    def secondConvert(self):
-        self.merge()
+    def secondConvert(self , GpathWhite : str):
+        self.merge(GpathWhite)
         self.center_gcode(self.outputPath)
         self.addline()
 

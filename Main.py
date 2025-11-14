@@ -119,51 +119,52 @@ def get_font(size):  # Returns Press-Start-2P in the desired size
 
 
 def draw():
-    while True:
-        DRAW_MOUSE_POS = pygame.mouse.get_pos()
 
-        SCREEN.fill("black")
+        while True:
+            DRAW_MOUSE_POS = pygame.mouse.get_pos()
 
-        PLAY_TEXT = get_font(80).render("Choose Your Way ", True, "#900000")
-        PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 100))
-        SCREEN.blit(PLAY_TEXT, PLAY_RECT)
+            SCREEN.fill("black")
 
-        Draw_Capture = Button(image=pygame.image.load("assets/Camera.png"), pos=(640, 300), text_input="CAPTURE  ",
-                              font=get_font(55), base_color="White", hovering_color="Red")
-        Draw_UPLOAD = Button(image=pygame.image.load("assets/Upload.png"), pos=(640, 460),
-                             text_input=" UPLOAD FROM FILES   ", font=get_font(45), base_color="White",
-                             hovering_color="Red")
-        DRAW_BACK = Button(image=None, pos=(640, 570),
-                           text_input="BACK", font=get_font(75), base_color="White", hovering_color="Green")
+            PLAY_TEXT = get_font(80).render("Choose Your Way ", True, "#900000")
+            PLAY_RECT = PLAY_TEXT.get_rect(center=(640, 100))
+            SCREEN.blit(PLAY_TEXT, PLAY_RECT)
 
-        DRAW_BACK.changeColor(DRAW_MOUSE_POS)
-        DRAW_BACK.update(SCREEN)
-        Draw_Capture.changeColor(DRAW_MOUSE_POS)
-        Draw_Capture.update(SCREEN)
-        Draw_UPLOAD.changeColor(DRAW_MOUSE_POS)
-        Draw_UPLOAD.update(SCREEN)
+            Draw_Capture = Button(image=pygame.image.load("assets/Camera.png"), pos=(640, 300), text_input="CAPTURE  ",
+                                  font=get_font(55), base_color="White", hovering_color="Red")
+            Draw_UPLOAD = Button(image=pygame.image.load("assets/Upload.png"), pos=(640, 460),
+                                 text_input=" UPLOAD FROM FILES   ", font=get_font(45), base_color="White",
+                                 hovering_color="Red")
+            DRAW_BACK = Button(image=None, pos=(640, 570),
+                               text_input="BACK", font=get_font(75), base_color="White", hovering_color="Green")
 
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if Draw_Capture.checkForInput(DRAW_MOUSE_POS):
-                    take_picture()
-                    print("Captured")
-                    style()
-            if event.type == pygame.MOUSEBUTTONUP:
-                if Draw_UPLOAD.checkForInput(DRAW_MOUSE_POS):
-                    imagePath = upload_image()
+            DRAW_BACK.changeColor(DRAW_MOUSE_POS)
+            DRAW_BACK.update(SCREEN)
+            Draw_Capture.changeColor(DRAW_MOUSE_POS)
+            Draw_Capture.update(SCREEN)
+            Draw_UPLOAD.changeColor(DRAW_MOUSE_POS)
+            Draw_UPLOAD.update(SCREEN)
 
-                    print("UPLOAD FROM DEVICE")
-                    style()
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if Draw_Capture.checkForInput(DRAW_MOUSE_POS):
+                        take_picture()
+                        print("Captured")
+                        style()
+                if event.type == pygame.MOUSEBUTTONUP:
+                    if Draw_UPLOAD.checkForInput(DRAW_MOUSE_POS):
+                        imagePath = upload_image()
 
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if DRAW_BACK.checkForInput(DRAW_MOUSE_POS):
-                    main_menu()
+                        print("UPLOAD FROM DEVICE")
+                        style()
 
-        pygame.display.update()
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if DRAW_BACK.checkForInput(DRAW_MOUSE_POS):
+                        main_menu()
+
+            pygame.display.update()
 
 
 def options():
@@ -238,15 +239,22 @@ def style():
         Style_Text = get_font(80).render("Choose Your Style", True, "#900000")
         Style_RECT = Style_Text.get_rect(center=(640, 100))
         SCREEN.blit(Style_Text, Style_RECT)
-        Squiggle_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(410, 400),
+        Squiggle_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(410, 420),
                                  text_input="Squiggle ", font=get_font(55), base_color="Black",
                                  hovering_color="#900000")
-        Scribble_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(850, 400),
+        Scribble_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(850, 420),
                                  text_input="Scribble ", font=get_font(55), base_color="Black",
                                  hovering_color="#900000")
+        Tsp_Button =Button(image=pygame.image.load("assets/Play Rect.png"), pos=(850, 260),text_input="TSP "
+                           , font=get_font(55),base_color="Black",hovering_color="#900000")
+        Vector_Button  = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(410, 260),text_input="Vector"
+                           , font=get_font(55),base_color="Black",hovering_color="#900000")
         Style_BACK = Button(image=None, pos=(640, 570),
                             text_input="BACK", font=get_font(75), base_color="White", hovering_color="Green")
-
+        Vector_Button.changeColor(Style_MOUSE_POS)
+        Vector_Button.update(SCREEN)
+        Tsp_Button.changeColor(Style_MOUSE_POS)
+        Tsp_Button.update(SCREEN)
         Style_BACK.changeColor(Style_MOUSE_POS)
         Style_BACK.update(SCREEN)
         Squiggle_Button.changeColor(Style_MOUSE_POS)
@@ -254,6 +262,13 @@ def style():
         Scribble_Button.changeColor(Style_MOUSE_POS)
         Scribble_Button.update(SCREEN)
         for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if Vector_Button.checkForInput(Style_MOUSE_POS):
+                    print("vector")
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if Tsp_Button.checkForInput(Style_MOUSE_POS):
+                    print("tsp")
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Squiggle_Button.checkForInput(Style_MOUSE_POS):
                     print("Squiggle")
@@ -308,56 +323,53 @@ def SquiggleA4():
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if first_Button.checkForInput(Squiggle_Mos_Pos):
-                    Svg80 = Svg_Converter.SvgConverter(80, 4, White_Removal=False)
-                    svg , svgwhite = Svg80.SvgToSin(imagePath, outPath , 230)
+                    Svg80 = Svg_Converter.SvgConverter(imagePath,outPath)
+                    svg , svgwhite = Svg80.SvgToSin(80 , 4 , White_Removal=True )
                     time.sleep(0.5)
-                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg ,SvgWhite= svgwhite , GPath =GcodePath , GpathWhite=GcodePathWhite , scale=0.3 , bed_width=297 , bed_height=297)
-                    Gcon.firstConvert()
+                    print("hello")
+                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg  , GPath =GcodePath , scale=0.3 , bed_width=297 , bed_height=297)
+                    Gcon.firstConvert(SvgWhite=svgwhite , GpathWhite=GcodePathWhite)
                     time.sleep(1.5)
-                    Gcon.secondConvert()
-                    Run()
+                    Gcon.secondConvert(GpathWhite=GcodePathWhite)
+                    # Run()
                     print("First Button")
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Second_Button.checkForInput(Squiggle_Mos_Pos):
-                    Svg100 = Svg_Converter.SvgConverter(100, 4, White_Removal=False)
-                    svg , svgwhite =Svg100.SvgToSin(imagePath, outPath)
+                    Svg100 = Svg_Converter.SvgConverter(imagePath, outPath)
+                    svg, svgwhite = Svg100.SvgToSin( 100,4, White_Removal=True )
                     time.sleep(0.5)
-                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg, SvgWhite=svgwhite, GPath=GcodePath,
-                                                          GpathWhite=GcodePathWhite, scale=0.3, bed_width=297,
+                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg, GPath=GcodePath, scale=0.3, bed_width=297,
                                                           bed_height=297)
-                    Gcon.firstConvert()
+                    Gcon.firstConvert(SvgWhite=svgwhite, GpathWhite=GcodePathWhite)
                     time.sleep(1.5)
-                    Gcon.secondConvert()
-
-                    time.sleep(0.5)
+                    Gcon.secondConvert(GpathWhite=GcodePathWhite)
                     Run()
                     print("Second Button")
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Third_Button.checkForInput(Squiggle_Mos_Pos):
-                    Svg120 = Svg_Converter.SvgConverter(120, 4, White_Removal=False)
-                    svg , svgwhite = Svg120.SvgToSin(imagePath, outPath)
+                    Svg120 = Svg_Converter.SvgConverter(imagePath, outPath)
+                    svg , svgwhite = Svg120.SvgToSin(120,4, White_Removal=False)
                     time.sleep(0.5)
-                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg, SvgWhite=svgwhite, GPath=GcodePath,
-                                                          GpathWhite=GcodePathWhite, scale=0.3, bed_width=297,
+                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg, GPath=GcodePath,
+                                                           scale=0.3, bed_width=297,
                                                           bed_height=297)
-                    Gcon.firstConvert()
+                    Gcon.firstConvert(SvgWhite=svgwhite, GpathWhite=GcodePathWhite)
                     time.sleep(1.5)
-                    Gcon.secondConvert()
+                    Gcon.secondConvert(GpathWhite=GcodePathWhite)
                     time.sleep(0.5)
                     Run()
                     print("Third Button")
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Fourth_Button.checkForInput(Squiggle_Mos_Pos):
-                    Svg140 = Svg_Converter.SvgConverter(140, 4, White_Removal=False)
-                    svg , svgwhite = Svg140.SvgToSin(imagePath, outPath)
+                    Svg140 = Svg_Converter.SvgConverter(imagePath, outPath)
+                    svg , svgwhite = Svg140.SvgToSin(140 , 4 ,max_amplitude=1.5, White_Removal=False)
                     time.sleep(0.5)
-                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg, SvgWhite=svgwhite, GPath=GcodePath,
-                                                          GpathWhite=GcodePathWhite, scale=0.3, bed_width=297,
+                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg ,GPath=GcodePath,
+                                                           scale=0.3, bed_width=297,
                                                           bed_height=297)
-                    Gcon.firstConvert()
+                    Gcon.firstConvert(SvgWhite=svgwhite, GpathWhite=GcodePathWhite)
                     time.sleep(1.5)
-                    Gcon.secondConvert()
-
+                    Gcon.secondConvert(GpathWhite=GcodePathWhite)
                     time.sleep(0.5)
                     Run()
                     print("Fourth Button")
