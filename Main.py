@@ -2,7 +2,6 @@ import cv2
 import subprocess
 import time
 import pygame, sys
-
 import Gcode_Converter
 from Button import Button
 from pygame import event
@@ -10,67 +9,6 @@ from tkinter import Tk, filedialog
 import Svg_Converter
 import threading
 from grbl_uploader import GRBLUploader
-
-# def center_gcode(lines, bed_width, bed_height):
-#     x_vals, y_vals = [], []
-#
-#     # المرحلة 1: جمع الإحداثيات X و Y من أسطر الحركة فقط
-#     for line in lines:
-#         if line.startswith(('G1', 'G0')):
-#             parts = line.split()
-#             for p in parts:
-#                 if p.startswith('X'):
-#                     x_vals.append(float(p[1:]))
-#                 elif p.startswith('Y'):
-#                     y_vals.append(float(p[1:]))
-#
-#     if not x_vals or not y_vals:
-#         return lines
-#
-#     # حساب الأبعاد الحالية والرسم داخل مساحة الورقة
-#     min_x, max_x = min(x_vals), max(x_vals)
-#     min_y, max_y = min(y_vals), max(y_vals)
-#
-#     draw_width = max_x - min_x
-#     draw_height = max_y - min_y
-#
-#     offset_x = (bed_width - draw_width) / 2 - min_x
-#     offset_y = (bed_height - draw_height) / 2 - min_y
-#
-#     new_lines = []
-#     for line in lines:
-#         stripped = line.strip()
-#         if stripped.startswith(('G1', 'G0')):
-#             parts = []
-#             for p in stripped.split():
-#                 if p.startswith('X'):
-#                     parts.append(f"X{float(p[1:]) + offset_x:.3f}")
-#                 elif p.startswith('Y'):
-#                     parts.append(f"Y{float(p[1:]) + offset_y:.3f}")
-#                 else:
-#                     parts.append(p)
-#             new_line = ' '.join(parts)
-#         else:
-#             new_line = stripped
-#         # ✳️ تأكد من وجود newline بعد كل سطر
-#         new_lines.append(new_line + '\n')
-#
-#     return new_lines
-
-# imagepath -> svg , svgwhite -> Gpath , Gwhite
-
-# def GcodeConvert(svgPath : str ) :
-#     subprocess.run(
-#         f"vpype --config \"./TestingImages/myconfig.toml\" read {svgPath} translate 10mm 10mm scale 0.3mm 0.3mm linemerge linesort gwrite -p marlin_servo \"./TestingImages/meow.gc\"")
-#     print(f"Gcode saved")
-#
-#     with open("C:/Users/pc/PycharmProjects/Cnc_Plotter/TestingImages/meow.gc") as f:
-#         lines = f.readlines()
-#
-#     centered = center_gcode(lines, bed_width=297, bed_height=210)
-#
-#     with open("TestingImages/Centered.gc", "w") as f:
-#         f.writelines(centered)
 
 
 
@@ -233,6 +171,8 @@ def main_menu():
 
 
 def style():
+    imagePath = "TestingImages/image.png"
+    outputPath = "./TestingImages/Processed.svg"
     while True:
         Style_MOUSE_POS = pygame.mouse.get_pos()
         SCREEN.blit(BG, (0, 0))
@@ -245,7 +185,7 @@ def style():
         Scribble_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(850, 420),
                                  text_input="Scribble ", font=get_font(55), base_color="Black",
                                  hovering_color="#900000")
-        Tsp_Button =Button(image=pygame.image.load("assets/Play Rect.png"), pos=(850, 260),text_input="TSP "
+        Tsp_Button =Button(image=pygame.image.load("assets/Play Rect.png"), pos=(850, 260),text_input=" TSP(Beta)"
                            , font=get_font(55),base_color="Black",hovering_color="#900000")
         Vector_Button  = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(410, 260),text_input="Vector"
                            , font=get_font(55),base_color="Black",hovering_color="#900000")
@@ -267,8 +207,21 @@ def style():
                     print("vector")
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Tsp_Button.checkForInput(Style_MOUSE_POS):
+                    Tsp = Svg_Converter.SvgConverter(imagePath=imagePath, outPath=outputPath)
+                    Tsp.voronoi_tsp_pipeline(
+                        image_path=imagePath,
+                        output_dir="TestingImages",
+                        num_points=10000,
+                        edge_fraction=0.6,
+                        relax_iters=12,
+                        relax_alpha=0.8,
+                        make_single_path=True
+                    )
                     print("tsp")
-
+                    Gcon = Gcode_Converter.GcodeConverter(SvgPath= outputPath,GPath="TestingImages/Centered.gc" , scale=0.2 ,bed_width=280 , bed_height=200 )
+                    Gcon.gcodeConvert(svg=outputPath, gcode="TestingImages/Centered.gc")
+                    Gcon.center_gcode("TestingImages/Centered.gc")
+                    Run()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Squiggle_Button.checkForInput(Style_MOUSE_POS):
                     print("Squiggle")
