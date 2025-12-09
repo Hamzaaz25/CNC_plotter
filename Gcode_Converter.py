@@ -55,7 +55,7 @@ class GcodeConverter :
                 new_line = ' '.join(parts)
             else:
                 new_line = stripped
-            # ✳️ تأكد من وجود newline بعد كل سطر
+
             new_lines.append(new_line + '\n')
         centered = new_lines
         with open(gcode, "w") as f:
@@ -75,28 +75,28 @@ class GcodeConverter :
         for line in lines:
             stripped = line.strip().upper()
 
-            # احتفظ بأسطر الإعداد كما هي
+
             if stripped.startswith(("G21", "G90", "G92")) or stripped == "":
                 cleaned.append(line)
                 continue
 
-            # حافظ على أول أمر M03 دايمًا (حتى لو مكرر)
+
             if last_pen_state is None and stripped.startswith("M03"):
                 cleaned.append(line)
                 last_pen_state = "up" if "S180" in stripped else "down"
                 continue
 
-            # تكرارات أوامر القلم
+
             if "M03 S0" in stripped:
                 if last_pen_state != "down":
                     cleaned.append(line)
                     last_pen_state = "down"
-                # وإلا تجاهله
+
             elif "M03 S180" in stripped:
                 if last_pen_state != "up":
                     cleaned.append(line)
                     last_pen_state = "up"
-                # وإلا تجاهله
+
             else:
                 cleaned.append(line)
 

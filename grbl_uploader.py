@@ -111,6 +111,16 @@ class GRBLUploader:
             daemon=True)
         self.thread.start()
         print("[STARTED]")
+    def homeMachine (self):
+        print("[HOME]")
+    def streamLayers(self , filepaths : list):
+        for filepath in filepaths:
+            self.start_stream(filepath)
+            self.thread.join()
+            self.homeMachine()
+
+
+
 
     def stream_file(self, filepath: str):
         """Stream G-code file to GRBL using buffer-aware streaming (much faster)."""
@@ -201,7 +211,7 @@ class GRBLUploader:
 # Example CLI usage (only runs if executed directly)
 # ------------------------------------------------------------------------
 if __name__ == "__main__":
-    uploader = GRBLUploader(port="COM13")
+    uploader = GRBLUploader(port="COM17")
     uploader.connect()
     uploader.stream_file("grbl_test.gcode")
     uploader.disconnect()

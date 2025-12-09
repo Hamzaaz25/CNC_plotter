@@ -2,6 +2,8 @@ import cv2
 import subprocess
 import time
 import pygame, sys
+
+import Cmyk_Converter
 import Gcode_Converter
 from Button import Button
 from pygame import event
@@ -242,6 +244,92 @@ def SquiggleA4():
     while True:
         Squiggle_Mos_Pos = pygame.mouse.get_pos()
         SCREEN.blit(BG, (0, 0))
+        Squiggle_Text = get_font(80).render("Choose Your Color Style ", True, "#900000")
+        Squiggle_RECT = Squiggle_Text.get_rect(center=(640, 100))
+        SCREEN.blit(Squiggle_Text, Squiggle_RECT)
+        first_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(450, 370), text_input="CMYK",
+                              font=get_font(60), base_color="Black", hovering_color="#900000")
+        Second_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(830, 370), text_input="GrayScale",
+                               font=get_font(60), base_color="Black", hovering_color="#900000")
+
+        Style_BACK = Button(image=None, pos=(640, 570),
+                            text_input="BACK", font=get_font(75), base_color="White", hovering_color="Green")
+
+        Style_BACK.changeColor(Squiggle_Mos_Pos)
+        Style_BACK.update(SCREEN)
+        first_Button.changeColor(Squiggle_Mos_Pos)
+        first_Button.update(SCREEN)
+        Second_Button.changeColor(Squiggle_Mos_Pos)
+        Second_Button.update(SCREEN)
+
+
+
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if first_Button.checkForInput(Squiggle_Mos_Pos):
+                    Colored()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if Second_Button.checkForInput(Squiggle_Mos_Pos):
+                    NotcoloredSquiggle()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if Style_BACK.checkForInput(Squiggle_Mos_Pos):
+                    style()
+        pygame.display.update()
+
+def Colored ():
+    cmyk_gcode = ["TestingImages/CMYK_Parts/cyan.gc",
+                  "TestingImages/CMYK_Parts/magenta.gc",
+                  "TestingImages/CMYK_Parts/yellow.gc",
+                  "TestingImages/CMYK_Parts/black.gc" ]
+    cmyk_svg = ["TestingImages/CMYK_Parts/cyan.svg",
+                "TestingImages/CMYK_Parts/magenta.svg",
+                "TestingImages/CMYK_Parts/yellow.svg",
+                "TestingImages/CMYK_Parts/black.svg"]
+    gcode_whites = ["TestingImages/CMYK_Parts/White/w1.gc",
+                "TestingImages/CMYK_Parts/White/w2.gc",
+                "TestingImages/CMYK_Parts/White/w3.gc",
+                "TestingImages/CMYK_Parts/White/w4.gc"]
+    cmyk_names = ["cyan", "magenta", "yellow", "black"]
+    while True:
+            Colored_Mouse = pygame.mouse.get_pos()
+            SCREEN.blit(BG, (0, 0))
+            Colored_Text = get_font(80).render("Processing...", True, "#900000")
+            Colored_RECT = Colored_Text.get_rect(center=(640, 100))
+            SCREEN.blit(Colored_Text, Colored_RECT)
+            Color_Button =Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 300), text_input="Press Me",
+                              font=get_font(60), base_color="Black", hovering_color="#900000")
+            Color_Button.changeColor(Colored_Mouse)
+            Color_Button.update(SCREEN)
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if Color_Button.checkForInput(Colored_Mouse):
+                       cmyk = Cmyk_Converter.Cmyk("./TestingImages/image.png" , 800)
+                       cmyk_layers = cmyk.cmyk_paths()
+                       for layer, gcode, names , svg ,white in zip(cmyk_layers, cmyk_gcode, cmyk_names , cmyk_svg , gcode_whites):
+                           SvgObject = Svg_Converter.SvgConverter(layer,svg)
+
+                           svg, svgwhite = SvgObject.SvgToSin(90, 4, White_Removal=True)
+                           Gcode = Gcode_Converter.GcodeConverter(SvgPath=svg , GPath=gcode , scale = 0.3)
+                           Gcode.firstConvert(SvgWhite=svgwhite, GpathWhite=white)
+                           time.sleep(0.2)
+                           Gcode.secondConvert(GpathWhite=white)
+                           time.sleep(0.2)
+
+
+
+                       try:
+                        Run2()
+                       except Exception as e:
+                           print("Error")
+                           sys.exit(0)
+            pygame.display.update()
+
+def NotcoloredSquiggle():
+    while True:
+        Squiggle_Mos_Poss = pygame.mouse.get_pos()
+        SCREEN.blit(BG, (0, 0))
         Squiggle_Text = get_font(80).render("How Many Lines ?", True, "#900000")
         Squiggle_RECT = Squiggle_Text.get_rect(center=(640, 100))
         SCREEN.blit(Squiggle_Text, Squiggle_RECT)
@@ -258,15 +346,15 @@ def SquiggleA4():
         Style_BACK = Button(image=None, pos=(640, 570),
                             text_input="BACK", font=get_font(75), base_color="White", hovering_color="Green")
 
-        Style_BACK.changeColor(Squiggle_Mos_Pos)
+        Style_BACK.changeColor(Squiggle_Mos_Poss)
         Style_BACK.update(SCREEN)
-        first_Button.changeColor(Squiggle_Mos_Pos)
+        first_Button.changeColor(Squiggle_Mos_Poss)
         first_Button.update(SCREEN)
-        Second_Button.changeColor(Squiggle_Mos_Pos)
+        Second_Button.changeColor(Squiggle_Mos_Poss)
         Second_Button.update(SCREEN)
-        Third_Button.changeColor(Squiggle_Mos_Pos)
+        Third_Button.changeColor(Squiggle_Mos_Poss)
         Third_Button.update(SCREEN)
-        Fourth_Button.changeColor(Squiggle_Mos_Pos)
+        Fourth_Button.changeColor(Squiggle_Mos_Poss)
         Fourth_Button.update(SCREEN)
         imagePath = "TestingImages/image.png"
         outPath = "./TestingImages/Processed.svg"
@@ -275,21 +363,21 @@ def SquiggleA4():
 
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if first_Button.checkForInput(Squiggle_Mos_Pos):
-                    Svg80 = Svg_Converter.SvgConverter(imagePath,outPath)
-                    svg , svgwhite = Svg80.SvgToSin(80 , 4 , White_Removal=True )
+                if first_Button.checkForInput(Squiggle_Mos_Poss):
+                    Svg80 = Svg_Converter.SvgConverter(imagePath, outPath)
+                    svg, svgwhite = Svg80.SvgToSin(80, 4, White_Removal=True)
                     time.sleep(0.5)
                     print("hello")
-                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg  , GPath =GcodePath , scale=0.3 , bed_width=297 , bed_height=297)
-                    Gcon.firstConvert(SvgWhite=svgwhite , GpathWhite=GcodePathWhite)
+                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg, GPath=GcodePath, scale=0.3)
+                    Gcon.firstConvert(SvgWhite=svgwhite, GpathWhite=GcodePathWhite)
                     time.sleep(1.5)
                     Gcon.secondConvert(GpathWhite=GcodePathWhite)
                     # Run()
                     print("First Button")
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if Second_Button.checkForInput(Squiggle_Mos_Pos):
+                if Second_Button.checkForInput(Squiggle_Mos_Poss):
                     Svg100 = Svg_Converter.SvgConverter(imagePath, outPath)
-                    svg, svgwhite = Svg100.SvgToSin( 100,4, White_Removal=True )
+                    svg, svgwhite = Svg100.SvgToSin(100, 4, White_Removal=True)
                     time.sleep(0.5)
                     Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg, GPath=GcodePath, scale=0.3, bed_width=297,
                                                           bed_height=297)
@@ -299,12 +387,12 @@ def SquiggleA4():
                     Run()
                     print("Second Button")
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if Third_Button.checkForInput(Squiggle_Mos_Pos):
+                if Third_Button.checkForInput(Squiggle_Mos_Poss):
                     Svg120 = Svg_Converter.SvgConverter(imagePath, outPath)
-                    svg , svgwhite = Svg120.SvgToSin(120,4, White_Removal=False)
+                    svg, svgwhite = Svg120.SvgToSin(120, 4, White_Removal=False)
                     time.sleep(0.5)
                     Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg, GPath=GcodePath,
-                                                           scale=0.3, bed_width=297,
+                                                          scale=0.3, bed_width=297,
                                                           bed_height=297)
                     Gcon.firstConvert(SvgWhite=svgwhite, GpathWhite=GcodePathWhite)
                     time.sleep(1.5)
@@ -313,24 +401,26 @@ def SquiggleA4():
                     Run()
                     print("Third Button")
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if Fourth_Button.checkForInput(Squiggle_Mos_Pos):
+                if Fourth_Button.checkForInput(Squiggle_Mos_Poss):
                     Svg140 = Svg_Converter.SvgConverter(imagePath, outPath)
-                    svg , svgwhite = Svg140.SvgToSin(140 , 4 ,max_amplitude=1.5, White_Removal=False)
+                    svg, svgwhite = Svg140.SvgToSin(140, 4, max_amplitude=1.5, White_Removal=False)
                     time.sleep(0.5)
-                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg ,GPath=GcodePath,
-                                                           scale=0.3, bed_width=297,
+                    Gcon = Gcode_Converter.GcodeConverter(SvgPath=svg, GPath=GcodePath,
+                                                          scale=0.3, bed_width=297,
                                                           bed_height=297)
                     Gcon.firstConvert(SvgWhite=svgwhite, GpathWhite=GcodePathWhite)
                     time.sleep(1.5)
                     Gcon.secondConvert(GpathWhite=GcodePathWhite)
                     time.sleep(0.5)
-                    Run()
+                    try:
+                        Run()
+                    except Exception as e:
+                        print(e)
                     print("Fourth Button")
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if Style_BACK.checkForInput(Squiggle_Mos_Pos):
+                if Style_BACK.checkForInput(Squiggle_Mos_Poss):
                     style()
         pygame.display.update()
-
 
 def Run():
     Started = False
@@ -381,6 +471,62 @@ def Run():
                         print("Started")
                         Started = True
                         uploader.start_stream("TestingImages/Centered.gc")
+
+        pygame.display.update()
+def Run2():
+    cmyk_gcode = ["TestingImages/CMYK_Parts/cyan.gc",
+                  "TestingImages/CMYK_Parts/magenta.gc",
+                  "TestingImages/CMYK_Parts/yellow.gc",
+                  "TestingImages/CMYK_Parts/black.gc"]
+    Started = False
+    Paused = False
+    uploader = GRBLUploader(port="COM17")
+    uploader.connect()
+    while True:
+        Gcode_Mouse_Pos = pygame.mouse.get_pos()
+        SCREEN.blit(BG, (0, 0))
+        Gcode_Text = get_font(80).render("Running G-Code", True, "#900000")
+        Gcode_RECT = Gcode_Text.get_rect(center=(640, 100))
+        SCREEN.blit(Gcode_Text, Gcode_RECT)
+        Start_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 240), text_input="START",
+                              font=get_font(55), base_color="Black", hovering_color="#900000")
+        Pause_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 460), text_input="PAUSE",
+                              font=get_font(55), base_color="Black", hovering_color="#900000")
+        Resume_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(640, 350), text_input="RESUME",
+                               font=get_font(55), base_color="Black", hovering_color="#900000")
+        Pause_Button.changeColor(Gcode_Mouse_Pos)
+        Pause_Button.update(SCREEN)
+        Resume_Button.changeColor(Gcode_Mouse_Pos)
+        Resume_Button.update(SCREEN)
+        Start_Button.changeColor(Gcode_Mouse_Pos)
+        Start_Button.update(SCREEN)
+
+
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if Pause_Button.checkForInput(Gcode_Mouse_Pos):
+                    if not Paused:
+                      Paused = True
+                      uploader.Pause()
+                      print("Paused")
+                      time.sleep(1)
+
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if Resume_Button.checkForInput(Gcode_Mouse_Pos):
+                    if Paused:
+                        Paused = False
+                        uploader.resume()
+                        print("Resumed")
+                        time.sleep(1)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if Start_Button.checkForInput(Gcode_Mouse_Pos):
+
+                    if not Started:
+                        print("Started")
+                        Started = True
+                        uploader.streamLayers(cmyk_gcode)
+
 
         pygame.display.update()
 
