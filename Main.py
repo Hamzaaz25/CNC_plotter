@@ -314,7 +314,7 @@ def Colored ():
                            Gcode = Gcode_Converter.GcodeConverter(SvgPath=svg , GPath=gcode , scale = 0.3)
                            Gcode.firstConvert(SvgWhite=svgwhite, GpathWhite=white)
                            time.sleep(0.2)
-                           Gcode.secondConvert(GpathWhite=white)
+                           Gcode.secondConvertt(GpathWhite=white , Gpath =cmyk_gcode)
                            time.sleep(0.2)
 
 
@@ -372,8 +372,9 @@ def NotcoloredSquiggle():
                     Gcon.firstConvert(SvgWhite=svgwhite, GpathWhite=GcodePathWhite)
                     time.sleep(1.5)
                     Gcon.secondConvert(GpathWhite=GcodePathWhite)
-                    # Run()
                     print("First Button")
+                    Run()
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Second_Button.checkForInput(Squiggle_Mos_Poss):
                     Svg100 = Svg_Converter.SvgConverter(imagePath, outPath)

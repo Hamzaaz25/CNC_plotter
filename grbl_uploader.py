@@ -112,7 +112,9 @@ class GRBLUploader:
         self.thread.start()
         print("[STARTED]")
     def homeMachine (self):
-        print("[HOME]")
+        self.ser.write(b"$H")
+        self.ser.write(b"$X")
+
 
     def streamLayers(self , filepaths : list):
         for filepath in filepaths:

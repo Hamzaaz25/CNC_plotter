@@ -83,16 +83,16 @@ class GcodeConverter :
 
             if last_pen_state is None and stripped.startswith("M03"):
                 cleaned.append(line)
-                last_pen_state = "up" if "S180" in stripped else "down"
+                last_pen_state = "up" if "S70" in stripped else "down"
                 continue
 
 
-            if "M03 S0" in stripped:
+            if "M03 S180" in stripped:
                 if last_pen_state != "down":
                     cleaned.append(line)
                     last_pen_state = "down"
 
-            elif "M03 S180" in stripped:
+            elif "M03 S70" in stripped:
                 if last_pen_state != "up":
                     cleaned.append(line)
                     last_pen_state = "up"
@@ -111,9 +111,9 @@ class GcodeConverter :
         for line in full_lines:
             if line.startswith(("G0", "G1")):
                 if line.strip()  in white_lines:
-                    new_lines.append("M03 S180")  # pen up
+                    new_lines.append("M03 S70")  # pen up
                 else:
-                    new_lines.append("M03 S0")  # pen down
+                    new_lines.append("M03 S180")  # pen down
                 new_lines.append(line)
 
         with open(self.outputPath, "w") as f:
@@ -142,13 +142,33 @@ class GcodeConverter :
         self.center_gcode(self.outputPath)
         self.addline()
 
+    def secondConvertt(self, GpathWhite: str , Gpath ):
+        self.merge(GpathWhite)
+        self.center_gcode(self.outputPath)
+        for str in Gpath :
+            self.addlinee( str)
+
     def addline(self):
         with open(self.outputPath, "r") as file:
             lines = file.readlines()
         # Insert at position 2 (3rd line)
-        print("hello")
+        print("hello gcode")
         lines.insert(1, "G92 X0 Y0\n")
+        lines.insert(2, "$X\n")
 
         # Write everything back
         with open("./TestingImages/Centered.gc", "w") as file:
+            file.writelines(lines)
+
+
+    def addlinee(self , path : str):
+        with open(self.outputPath, "r") as file:
+            lines = file.readlines()
+        # Insert at position 2 (3rd line)
+        print("hello gcode")
+        lines.insert(1, "G92 X0 Y0\n")
+        lines.insert(2, "$X\n")
+
+        # Write everything back
+        with open(path, "w") as file:
             file.writelines(lines)
