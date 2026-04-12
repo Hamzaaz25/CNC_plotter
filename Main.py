@@ -2,7 +2,6 @@ import cv2
 import subprocess
 import time
 import pygame, sys
-
 import Cmyk_Converter
 import Gcode_Converter
 from Button import Button
@@ -11,7 +10,6 @@ from tkinter import Tk, filedialog
 import Svg_Converter
 import threading
 from grbl_uploader import GRBLUploader
-
 
 
 def upload_image():
@@ -181,32 +179,24 @@ def style():
         Style_Text = get_font(80).render("Choose Your Style", True, "#900000")
         Style_RECT = Style_Text.get_rect(center=(640, 100))
         SCREEN.blit(Style_Text, Style_RECT)
-        Squiggle_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(410, 420),
+        Squiggle_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(410, 370),
                                  text_input="Squiggle ", font=get_font(55), base_color="Black",
                                  hovering_color="#900000")
-        Scribble_Button = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(850, 420),
-                                 text_input="Scribble ", font=get_font(55), base_color="Black",
-                                 hovering_color="#900000")
-        Tsp_Button =Button(image=pygame.image.load("assets/Play Rect.png"), pos=(850, 260),text_input=" TSP(Beta)"
+
+        Tsp_Button =Button(image=pygame.image.load("assets/Play Rect.png"), pos=(850, 370),text_input=" TSP(Beta)"
                            , font=get_font(55),base_color="Black",hovering_color="#900000")
-        Vector_Button  = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(410, 260),text_input="Vector"
-                           , font=get_font(55),base_color="Black",hovering_color="#900000")
+
         Style_BACK = Button(image=None, pos=(640, 570),
                             text_input="BACK", font=get_font(75), base_color="White", hovering_color="Green")
-        Vector_Button.changeColor(Style_MOUSE_POS)
-        Vector_Button.update(SCREEN)
+
         Tsp_Button.changeColor(Style_MOUSE_POS)
         Tsp_Button.update(SCREEN)
         Style_BACK.changeColor(Style_MOUSE_POS)
         Style_BACK.update(SCREEN)
         Squiggle_Button.changeColor(Style_MOUSE_POS)
         Squiggle_Button.update(SCREEN)
-        Scribble_Button.changeColor(Style_MOUSE_POS)
-        Scribble_Button.update(SCREEN)
+
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if Vector_Button.checkForInput(Style_MOUSE_POS):
-                    print("vector")
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Tsp_Button.checkForInput(Style_MOUSE_POS):
                     Tsp = Svg_Converter.SvgConverter(imagePath=imagePath, outPath=outputPath)
@@ -229,10 +219,7 @@ def style():
                     print("Squiggle")
                     SquiggleA4()
                     Run()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if Scribble_Button.checkForInput(Style_MOUSE_POS):
-                    print("Scribble")
-                    Run()
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Style_BACK.checkForInput(Style_MOUSE_POS):
                     draw()
@@ -474,6 +461,7 @@ def Run():
                         uploader.start_stream("TestingImages/Centered.gc")
 
         pygame.display.update()
+
 def Run2():
     cmyk_gcode = ["TestingImages/CMYK_Parts/cyan.gc",
                   "TestingImages/CMYK_Parts/magenta.gc",
@@ -533,7 +521,3 @@ def Run2():
 
 
 main_menu()
-
-
-
-

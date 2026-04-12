@@ -112,8 +112,8 @@ class GRBLUploader:
         self.thread.start()
         print("[STARTED]")
     def homeMachine (self):
-        self.ser.write(b"$H")
-        self.ser.write(b"$X")
+       print("Time to home and change color")
+       time.sleep(2000)
 
 
     def streamLayers(self , filepaths : list):
