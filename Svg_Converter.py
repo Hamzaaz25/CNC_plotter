@@ -1,9 +1,8 @@
 import cv2
 from functools import lru_cache
 import numpy as np
-from svgpathtools import Path, Line, CubicBezier, QuadraticBezier, wsvg
-from math import sin, pi
-from typing import List
+from svgpathtools import Path, Line, wsvg
+from math import sin
 import os
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -13,21 +12,18 @@ import svgwrite
 
 class SvgConverter:
 
-    def __init__(self ,imagePath : str , outPath :str ):
+    def __init__(self, imagePath: str, outPath: str):
         self.imagePath = imagePath
         self.outPath = outPath
         self.image = cv2.imread(self.imagePath)
 
-
-
-    def frange(self,start, stop, increment=1.0):
+    def frange(self, start, stop, increment=1.0):
         current = start
         while current < stop:
             yield current
             current += increment
 
     def addWhiteBorders(self, image, border_size=10):
-
         bordered = cv2.copyMakeBorder(
             image,
             top=border_size,
@@ -37,15 +33,12 @@ class SvgConverter:
             borderType=cv2.BORDER_CONSTANT,
             value=[255, 255, 255]
         )
-    @classmethod
-    def resize_image(self, image : np.ndarray, height: int):
-        # Compute the aspect ratio
+        return bordered
+
+    @staticmethod
+    def resize_image(image: np.ndarray, height: int):
         aspect_ratio = float(image.shape[1]) / float(image.shape[0])
-
-        # Calculate the new width based on the target height and original aspect ratio
         width = int(height * aspect_ratio)
-
-        # Resize the image
         resized_image = cv2.resize(image, (width, height))
         return resized_image
 
@@ -319,7 +312,6 @@ class SvgConverter:
                 dwg.save()
                 return
 
-            # Continuous polyline
             point_list = [(float(x), float(y)) for x, y in points]
             polyline = dwg.polyline(points=point_list,
                                     stroke="black",
@@ -344,27 +336,15 @@ class SvgConverter:
 
         vor = Voronoi(points)
 
-        # PNG: points + clipped Voronoi edges
         png_path = os.path.join(output_dir, "voronoi_stipple.png")
-        plot_points_and_voronoi(points, vor, rgb, draw_edges=draw_vor_edges, fname_png=png_path, width=width, height=height)
+        plot_points_and_voronoi(points, vor, rgb, draw_edges=draw_vor_edges,
+                                fname_png=png_path, width=width, height=height)
 
-        # SVG: single continuous polyline
         if make_single_path:
-            # Build clipped segments and stitch to one polyline
             clipped_segments = voronoi_segments_clipped(vor, width, height)
             path_points = stitch_segments_to_polyline(clipped_segments)
             svg_path = os.path.join(output_dir, "Processed.svg")
             export_svg_polyline(path_points, width, height, svg_path, scale=svg_size_scale)
         else:
-            # Fallback: polyline directly through relaxed points (may be jumpy)
             svg_path = os.path.join(output_dir, "stipple_points_path.svg")
             export_svg_polyline(points, width, height, svg_path, scale=svg_size_scale)
-
-
-
-
-
-
-
-# Example usage
-
