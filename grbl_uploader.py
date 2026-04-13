@@ -205,7 +205,7 @@ class GRBLUploader:
                 self.ser.write(b'~\n')  # GRBL cycle start
                 self.ser.flush()
                 self.paused = False
-                print("[RESUMED] GRBL cyclgie start sent.")
+                print("[RESUMED] GRBL cycle start sent.")
             except Exception as e:
                 print(f"[RESUME ERROR] {e}")
 
